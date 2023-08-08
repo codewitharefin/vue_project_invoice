@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import {invoice1,invoice2} from "./data/data.js";
 
 const data = reactive({
@@ -47,6 +47,33 @@ function addMoreItem() {
         rate: '',
         amount: ''
     })
+}
+
+const saveStatus = ref("")
+function saveData() {
+    const formData = {
+        sender: data.sender,
+        billTo: data.billTo,
+        shipTo: data.shipTo,
+        invoiceNumber: data.invoiceNumber,
+        date: data.date,
+        dueDate: data.dueDate,
+        additionalNote: data.additionalNote,
+        items: [...data.items],
+        notes: data.notes,
+        terms: data.terms,
+        subtotal: data.subtotal,
+        tax: data.tax,
+        total: data.total
+    };
+    try {
+        // Simulate saving to localStorage
+        localStorage.setItem('invoiceData', JSON.stringify(formData));
+        saveStatus.value = 'success';
+    } catch (error) {
+        console.error('Error saving invoice data:', error);
+        saveStatus.value = 'error';
+    }
 }
 </script>
 
@@ -114,8 +141,12 @@ function addMoreItem() {
                     </td>
                 </tr>
             </table>
+
             <button @click="addMoreItem()" class="mt-5 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                 Add More
+            </button>
+            <button @click="saveData()" class="ml-2 mt-5 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Save Data
             </button>
             <button @click="Object.assign(data,invoice1)" class="ml-2 mt-5 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                 Load Invoice 1
@@ -123,6 +154,9 @@ function addMoreItem() {
             <button @click="Object.assign(data,invoice2)" class="ml-2 mt-5 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                 Load Invoice 2
             </button>
+            <p class="mt-5">
+                {{ saveStatus }}
+            </p>
             <p class="mt-5">
                 {{ data }}
             </p>
