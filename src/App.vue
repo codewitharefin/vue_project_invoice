@@ -15,6 +15,7 @@ const data = reactive({
             description: '',
             quantity: '',
             rate: '',
+            discount: '',
             amount: ''
         }
     ],
@@ -22,7 +23,9 @@ const data = reactive({
     terms: '',
     subtotal: '',
     tax: '',
-    total: ''
+    total: '',
+    paidAmount: '',
+    balanceDue: ''
 })
 
 function getSubTotal() {
@@ -40,13 +43,23 @@ function getTotal() {
     return data.total
 }
 
+function getBalanceDue() {
+    data.balanceDue = data.total - data.paidAmount
+    return data.balanceDue
+}
+
 function addMoreItem() {
     data.items.push({
         description: '',
         quantity: '',
         rate: '',
+        discount: '',
         amount: ''
     })
+}
+
+function removeData(index) {
+    data.items.splice(index, 1)
 }
 
 const saveStatus = ref("")
@@ -67,12 +80,11 @@ function saveData() {
         total: data.total
     };
     try {
-        // Simulate saving to localStorage
-        localStorage.setItem('invoiceData', JSON.stringify(formData));
-        saveStatus.value = 'success';
+        localStorage.setItem('invoiceData', JSON.stringify(formData))
+        saveStatus.value = 'Data is saved to local storage successfully!'
     } catch (error) {
-        console.error('Error saving invoice data:', error);
-        saveStatus.value = 'error';
+        console.error('Error saving invoice data:', error)
+        saveStatus.value = 'There is error!'
     }
 }
 </script>
@@ -121,13 +133,18 @@ function saveData() {
         <div class="mt-20">
             <table class="table-auto w-full">
                 <tr class="bg-gray-800 text-left text-white">
-                    <th class="p-2 pl-5 w-1/2">Item</th>
+                    <th class="p-2 pl-5"></th>
+                    <th class="p-2 w-1/2">Item</th>
                     <th class="p-2">Quantity</th>
                     <th class="p-2">Rate</th>
+                    <th class="p-2">Discount</th>
                     <th class="p-2 w-[200px] text-right pr-5">Amount</th>
                 </tr>
                 <tr v-for="(item, index) in data.items" :key="index">
                     <td class="py-1">
+                        <button @click="removeData(index)" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 mr-1 rounded">X</button>
+                    </td>
+                    <td>
                         <input v-model="item.description" class="w-full pl-5" type="text" placeholder="Description" />
                     </td>
                     <td class="">
@@ -136,8 +153,11 @@ function saveData() {
                     <td class="">
                         <input v-model="item.rate" class="w-full" type="number" placeholder="Rate">
                     </td>
+                    <td class="">
+                        <input v-model="item.discount" class="w-full" type="number" placeholder="Discount">
+                    </td>
                     <td class="py-1 pr-5 text-right text-gray-800">
-                        $ {{ item.amount = item.quantity * item.rate }}
+                        $ {{ item.amount = item.quantity * item.rate - item.discount }}
                     </td>
                 </tr>
             </table>
@@ -154,14 +174,14 @@ function saveData() {
             <button @click="Object.assign(data,invoice2)" class="ml-2 mt-5 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                 Load Invoice 2
             </button>
-            <p class="mt-5">
+            <p class="mt-5 text-green-700">
                 {{ saveStatus }}
             </p>
             <p class="mt-5">
                 {{ data }}
             </p>
         </div>
-        <div class="mt-[200px]">
+        <div class="mt-[50px]">
             <div class="flex justify-between">
                 <div class="flex flex-col space-y-5 w-1/2">
                     <span>Notes</span>
@@ -184,8 +204,12 @@ function saveData() {
                             <input :value="getTotal()" readonly class="focus:ring-0 focus:ring-offset-0 text-right ml-2 pr-4 w-[200px] border-0" placeholder="Total">
                         </p>
                         <p>
+                            <span>Paid Amount</span>
+                            <input v-model="data.paidAmount" type="number" class="tax text-right w-[200px] ml-2">
+                        </p>
+                        <p>
                             <span>Balace Due</span>
-                            <input readonly class="focus:ring-0 focus:ring-offset-0 text-right ml-2 pr-4 w-[200px] border-0" placeholder="Balance">
+                            <input :value="getBalanceDue()" readonly class="focus:ring-0 focus:ring-offset-0 text-right ml-2 pr-4 w-[200px] border-0" placeholder="Balance">
                         </p>
                     </div>
                 </div>
